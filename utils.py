@@ -2,9 +2,6 @@ import numpy as np
 import keras.backend as K
 import struct
 
-MUTATE_SPREAD = 2.0
-MUTATE_SHUFFLE_MAX_SIZE = 4
-
 def model_to_organism(model):
       values = [K.get_value(w) for w in model.weights]
       shapes = [arr.shape for arr in values]
@@ -40,6 +37,24 @@ def create_offspring(organism1, organism2):
       offspring2.mutate()
       return offspring1, offspring2
 
+def tournament_selection(organisms, gen_size, k, mode='max'):
+      selected = set()
+      while len(selected) < gen_size:
+            selected.add(tournament_select_single(organisms, k, mode))
+      return list(selected)
+
+def tournament_select_single(organisms, k, mode='max'):
+      indexes = set()
+      while len(indexes) < k:
+            indexes.add(np.random.randint(len(organisms)))
+      competing_organisms = [organisms[i] for i in list(indexes)]
+      if mode == 'max':
+            return max(competing_organisms, key=lambda x: x.fitness)
+      elif mode == 'min':
+            return min(competing_organisms, key=lambda x: x.fitness)
+      else:
+            raise ValueError('mode must be \'min\' or \'max\'!')
+
 def float_to_bits(f):
       s = struct.pack('>f', f)
       return struct.unpack('>l', s)[0]
@@ -56,12 +71,12 @@ class Organism(object):
             self.genome = genome
             self.shapes = shapes
       
-      def mutate(self):
+      def mutate(self, scale=2.0, shuffle_max_size=4):
             for i, gene in enumerate(self.genome):
-                  self.genome[i] += np.random.normal(loc=gene, scale=MUTATE_SPREAD)
+                  self.genome[i] += np.random.normal(loc=gene, scale=scale)
             if np.random.random() < 1/len(self.genome): # Should shuffle?
                   start = np.random.randint(len(self.genome))
-                  stop = start + np.random.randint(1,MUTATE_SHUFFLE_MAX_SIZE)
+                  stop = start + np.random.randint(1,shuffle_max_size)
                   stop = np.clip(stop, 0, len(self.genome)-1)
                   to_shuffle = self.genome[start:stop]
                   np.random.shuffle(to_shuffle)

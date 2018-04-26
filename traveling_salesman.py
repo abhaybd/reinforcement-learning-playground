@@ -2,9 +2,9 @@ import numpy as np
 from utils import Organism, tournament_select_single, update_fitness, create_offspring
 
 SIZE = 1000
-NUM_ORGANISMS = 100
+NUM_ORGANISMS = 500
 
-points = np.random.randint(SIZE, size=(100,2))
+points = [[0,2*i] for i in range(SIZE)]
 
 def fitness(organism):
       last_point = points[organism.genome[0]]
@@ -38,8 +38,10 @@ while True:
             assert len(set(parent1.genome)) == len(parent1.genome)
       update_fitness(organisms, fitness)
       curr_gen += 1
-      min_dist = min(organisms, key=lambda x: x.fitness).fitness**0.5
+      best_in_gen = min(organisms, key=lambda x: x.fitness)
+      min_dist = best_in_gen.fitness**0.5
       if min_dist < best_dist or best_dist == -1:
             best_dist = min_dist
             best_gen = curr_gen
+            best_organism = best_in_gen
       print('\rBest distance: {:.2f}, Best generation: {}, Current generation: {}'.format(best_dist, best_gen, curr_gen), end='')

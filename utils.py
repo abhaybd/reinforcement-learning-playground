@@ -1,8 +1,8 @@
 import numpy as np
-import keras.backend as K
 import struct
 
 def model_to_organism(model):
+      import keras.backend as K
       values = [K.get_value(w) for w in model.weights]
       shapes = [arr.shape for arr in values]
       values = np.hstack(arr.flatten() for arr in values)
@@ -10,6 +10,7 @@ def model_to_organism(model):
       return organism
 
 def organism_to_model(model, organism):
+      import keras.backend as K
       shapes = organism.shapes
       genome = organism.genome
       def product(nums):
@@ -86,13 +87,13 @@ class Organism(object):
             self.shapes = shapes
             self.fitness = 0
       
-      def mutate(self, scale=2.0, shuffle_max_size=20):
+      def mutate(self, scale=2.0, shuffle_max_size=50):
             if scale != -1:
                   for i, gene in enumerate(self.genome):
                         self.genome[i] += np.random.normal(loc=gene, scale=scale)
             if np.random.random() < 1/len(self.genome): # Should shuffle?
                   start = np.random.randint(len(self.genome))
-                  stop = start + shuffle_max_size
+                  stop = start + np.random.randint(shuffle_max_size//3,shuffle_max_size)
                   stop = np.clip(stop, 0, len(self.genome))
                   to_shuffle = self.genome[start:stop]
                   np.random.shuffle(to_shuffle)

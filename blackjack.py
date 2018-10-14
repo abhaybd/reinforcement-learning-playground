@@ -1,15 +1,8 @@
-from keras.models import Sequential
-from keras.layers import Dense, Flatten
+from keras.models import load_model
 import gym
 import numpy as np
 
-model = Sequential()
-model.add(Flatten(input_shape=(1, 3)))
-model.add(Dense(16, activation='relu'))
-model.add(Dense(16, activation='relu'))
-model.add(Dense(16, activation='relu'))
-model.add(Dense(2, activation='sigmoid'))
-model.load_weights('models/dqn_Blackjack-v0_weights-43.h5')
+model = load_model('models/dqn_Blackjack-v0_weights.h5')
 
 ENV_NAME = 'Blackjack-v0'
 

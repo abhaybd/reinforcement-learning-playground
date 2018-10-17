@@ -45,7 +45,7 @@ model.summary()
 
 memory = SequentialMemory(limit=1500000, window_length=WINDOW_LENGTH)
 policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
-                              nb_steps=1400000)
+                              nb_steps=1800000)
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100, processor=ScoreProcessor(),
                target_model_update=1e-2, policy=policy)
 dqn.compile(Adam(lr=1e-3), metrics=['mae'])
@@ -56,7 +56,7 @@ os.makedirs(log_dir)
 
 tensorboard = TensorBoard(log_dir=log_dir)
 
-dqn.fit(env, nb_steps=2000000, visualize=False, verbose=1, callbacks=[tensorboard])
+dqn.fit(env, nb_steps=2500000, visualize=False, verbose=1, callbacks=[tensorboard])
 
 dqn.test(env, nb_episodes=10, visualize=True, verbose=1)
 

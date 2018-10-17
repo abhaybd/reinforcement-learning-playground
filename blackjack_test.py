@@ -2,7 +2,7 @@ from keras.models import load_model
 import gym
 import numpy as np
 
-model = load_model('models/dqn_Blackjack-v0_weights.h5')
+model = load_model('models/dqn_Blackjack-v0-43.h5')
 
 ENV_NAME = 'Blackjack-v0'
 
@@ -35,7 +35,7 @@ def play_game(debug_enabled=True):
 
 
 win_sum, tie_sum, lose_sum = 0, 0, 0
-n_games = 10000
+n_games = 1000
 for i in range(n_games):
     result = play_game(False)
     win_sum += 1 if result[0] else 0

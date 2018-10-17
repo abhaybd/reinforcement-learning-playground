@@ -1,0 +1,6 @@
+keras-rl==0.4.2
+gym==0.10.8
+numpy==1.15.2
+keras==2.2.4
+atari-py==0.1.1
+tensorflow==1.10.0

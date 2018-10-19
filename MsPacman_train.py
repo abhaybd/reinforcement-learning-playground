@@ -5,9 +5,9 @@ import numpy as np
 import gym
 
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Dropout
+from keras.layers import Dense, Dropout, Flatten
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 
 from rl.agents.dqn import DQNAgent
 from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
@@ -32,32 +32,39 @@ WINDOW_LENGTH = 4
 
 model = Sequential()
 model.add(Flatten(input_shape=(WINDOW_LENGTH, 128)))
-model.add(Dense(256, activation='relu'))
-model.add(Dropout(0.15))
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.15))
-model.add(Dense(64, activation='relu'))
-model.add(Dropout(0.15))
+model.add(Dropout(0.2))
 model.add(Dense(32, activation='relu'))
-model.add(Dropout(0.15))
+model.add(Dropout(0.2))
 model.add(Dense(nb_actions, activation='linear'))
 model.summary()
 
-memory = SequentialMemory(limit=1500000, window_length=WINDOW_LENGTH)
-policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
-                              nb_steps=1800000)
+NUM_STEPS = 10000
+
+memory = SequentialMemory(limit=round(0.75*NUM_STEPS), window_length=WINDOW_LENGTH)
+policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=0.05,
+                              nb_steps=round(0.8*NUM_STEPS))
+test_policy = EpsGreedyQPolicy(eps=0.05)
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100, processor=ScoreProcessor(),
-               target_model_update=1e-2, policy=policy)
-dqn.compile(Adam(lr=1e-3), metrics=['mae'])
+               target_model_update=1e-2, policy=policy, test_policy=test_policy)
+dqn.compile(Adam(lr=5e-4), metrics=['mae'])
 
 date = datetime.today().strftime('%Y-%m-%d_%H%M')
+
 log_dir = 'logs/%s/%s' % (ENV_NAME, date)
 os.makedirs(log_dir)
 
+checkpoint_dir = 'models/checkpoints/%s/%s' % (ENV_NAME, date)
+os.makedirs(checkpoint_dir)
+
 tensorboard = TensorBoard(log_dir=log_dir)
+checkpoint = ModelCheckpoint(filepath=os.path.join(checkpoint_dir, 'weights_{epoch:02d}-{episode_reward:.0f}.h5'),
+                             monitor='episode_reward', mode='max', save_best_only=True, save_weights_only=True)
 
-dqn.fit(env, nb_steps=2500000, visualize=False, verbose=1, callbacks=[tensorboard])
+with open(os.path.join(checkpoint_dir, 'model.json'), 'w') as f:
+    f.write(model.to_json())
 
-dqn.test(env, nb_episodes=10, visualize=True, verbose=1)
+dqn.fit(env, nb_steps=NUM_STEPS, visualize=False, verbose=1, callbacks=[tensorboard, checkpoint])
+
+dqn.test(env, nb_episodes=15, visualize=True, verbose=1, nb_max_start_steps=100)
 
 model.save('models/dqn_{}.h5'.format(ENV_NAME))

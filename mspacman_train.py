@@ -49,11 +49,8 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
 dqn.compile(Adam(lr=5e-4), metrics=['mae'])
 
 tensorboard = create_logger(ENV_NAME)
-checkpoint_dir, checkpoint = create_model_checkpoint(ENV_NAME, 'episode_reward', 'max', save_best_only=True,
-                                                     save_weights_only=True)
-
-with open(os.path.join(checkpoint_dir, 'model.json'), 'w') as f:
-    f.write(model.to_json())
+checkpoint = create_model_checkpoint(ENV_NAME, model=model, monitor='episode_reward', mode='max', save_best_only=True,
+                                     save_weights_only=True)
 
 dqn.fit(env, nb_steps=NUM_STEPS, visualize=False, verbose=1, callbacks=[tensorboard, checkpoint])
 

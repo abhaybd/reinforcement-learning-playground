@@ -11,9 +11,8 @@ from rl.agents.dqn import DQNAgent
 from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
-from rl.callbacks import ModelIntervalCheckpoint
 
-from utils import create_logger
+from utils import create_logger, create_model_checkpoint
 
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
@@ -97,8 +96,7 @@ dqn.compile(Adam(lr=.00025), metrics=['mae'])
 
 # Okay, now it's time to learn something! We capture the interrupt exception so that training
 # can be prematurely aborted. Notice that you can the built-in Keras callbacks!
-checkpoint_weights_filename = 'models/checkpoints/dqn_' + ENV_NAME + '_weights_{step}.h5'
-checkpoint = ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)
+checkpoint = create_model_checkpoint(ENV_NAME, model=model, save_weights_only=True, period=200000)
 tensorboard = create_logger(ENV_NAME)
 
 dqn.fit(env, nb_steps=1750000, log_interval=10000, callbacks=[checkpoint, tensorboard])

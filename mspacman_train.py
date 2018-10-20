@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import gym
 
@@ -12,7 +10,7 @@ from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
 from rl.processors import Processor
 
-from utils import create_logger, create_model_checkpoint
+from callback_utils import create_logger, create_model_checkpoint
 
 
 class ScoreProcessor(Processor):

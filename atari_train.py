@@ -12,7 +12,7 @@ from rl.policy import LinearAnnealedPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 from rl.core import Processor
 
-from utils import create_logger, create_model_checkpoint
+from callback_utils import create_logger, create_model_checkpoint
 
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4

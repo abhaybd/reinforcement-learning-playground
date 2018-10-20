@@ -13,6 +13,8 @@ from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.callbacks import ModelIntervalCheckpoint
 
+from utils import create_logger
+
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
 
@@ -37,7 +39,7 @@ class AtariProcessor(Processor):
         return np.clip(reward, -1., 1.)
 
 
-ENV_NAME = 'Breakout-v0'
+ENV_NAME = 'MsPacman-v0'
 
 # Get the environment and extract the number of actions.
 env = gym.make(ENV_NAME)
@@ -95,14 +97,14 @@ dqn.compile(Adam(lr=.00025), metrics=['mae'])
 
 # Okay, now it's time to learn something! We capture the interrupt exception so that training
 # can be prematurely aborted. Notice that you can the built-in Keras callbacks!
-weights_filename = 'models/dqn_{}_weights.h5'.format(ENV_NAME)
 checkpoint_weights_filename = 'models/checkpoints/dqn_' + ENV_NAME + '_weights_{step}.h5'
-callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
+checkpoint = ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)
+tensorboard = create_logger(ENV_NAME)
 
-dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000)
+dqn.fit(env, nb_steps=1750000, log_interval=10000, callbacks=[checkpoint, tensorboard])
 
 # After training is done, we save the final weights one more time.
-model.save(weights_filename)
+model.save('models/dqn_{}.h5'.format(ENV_NAME))
 
 # Finally, evaluate our algorithm for 10 episodes.
 dqn.test(env, nb_episodes=10, visualize=True)

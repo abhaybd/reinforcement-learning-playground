@@ -7,12 +7,13 @@ import gym
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint
 
 from rl.agents.dqn import DQNAgent
 from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
 from rl.processors import Processor
+
+from utils import create_logger, create_model_checkpoint
 
 
 class ScoreProcessor(Processor):
@@ -40,25 +41,17 @@ model.summary()
 
 NUM_STEPS = 10000
 
-memory = SequentialMemory(limit=round(0.75*NUM_STEPS), window_length=WINDOW_LENGTH)
+memory = SequentialMemory(limit=round(0.75 * NUM_STEPS), window_length=WINDOW_LENGTH)
 policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=0.05,
-                              nb_steps=round(0.8*NUM_STEPS))
+                              nb_steps=round(0.8 * NUM_STEPS))
 test_policy = EpsGreedyQPolicy(eps=0.05)
 dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100, processor=ScoreProcessor(),
                target_model_update=1e-2, policy=policy, test_policy=test_policy)
 dqn.compile(Adam(lr=5e-4), metrics=['mae'])
 
-date = datetime.today().strftime('%Y-%m-%d_%H%M')
-
-log_dir = 'logs/%s/%s' % (ENV_NAME, date)
-os.makedirs(log_dir)
-
-checkpoint_dir = 'models/checkpoints/%s/%s' % (ENV_NAME, date)
-os.makedirs(checkpoint_dir)
-
-tensorboard = TensorBoard(log_dir=log_dir)
-checkpoint = ModelCheckpoint(filepath=os.path.join(checkpoint_dir, 'weights_{epoch:02d}-{episode_reward:.0f}.h5'),
-                             monitor='episode_reward', mode='max', save_best_only=True, save_weights_only=True)
+tensorboard = create_logger(ENV_NAME)
+checkpoint_dir, checkpoint = create_model_checkpoint(ENV_NAME, 'episode_reward', 'max', save_best_only=True,
+                                                     save_weights_only=True)
 
 with open(os.path.join(checkpoint_dir, 'model.json'), 'w') as f:
     f.write(model.to_json())

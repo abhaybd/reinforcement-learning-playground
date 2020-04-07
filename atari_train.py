@@ -38,7 +38,7 @@ class AtariProcessor(Processor):
         return np.clip(reward, -1., 1.)
 
 
-ENV_NAME = 'MsPacman-v0'
+ENV_NAME = 'Tennis-v0'
 
 # Get the environment and extract the number of actions.
 env = gym.make(ENV_NAME)
